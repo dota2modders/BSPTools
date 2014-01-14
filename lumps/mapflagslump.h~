@@ -1,0 +1,9 @@
+#ifndef mapflagslump_h
+#define mapflagslump_h
+#include<stdbool.h>
+#include<stdio.h>
+
+void mapflagslumpdescript(void* lump, int len, int version);
+bool mapflagslumphandler(void* arg);
+
+#endif

@@ -1,0 +1,39 @@
+#ifndef overlaylump_h
+#define overlaylump_h
+#include<stdbool.h>
+#include<stdio.h>
+#include"common.h"
+#include"texinfolump.h"
+
+#define MAX_DISP_CORNER_NEIGHBORS 4
+#define OVERLAY_BSP_FACE_COUNT 64
+
+typedef struct doverlay_21_t {
+	int Id;
+	short TexInfo;
+	unsigned short FaceCountAndRenderOrder;
+	int Ofaces [OVERLAY_BSP_FACE_COUNT];
+	float U[2];
+	float V[2];
+	vector UVPoints[4];
+	vector Origin;
+	vector BasisNormal;
+} doverlay_21;
+
+typedef struct doverlay_23_t {
+	int Id;
+	short TexInfo;
+	unsigned short FaceCountAndRenderOrder;
+	int Ofaces [OVERLAY_BSP_FACE_COUNT];
+	float U[2];
+	float V[2];
+	vector UVPoints[4];
+	vector Origin;
+	vector BasisNormal;
+	uint unknown;
+} doverlay_23;
+
+void overlaylumpdescript(BSPheader* header);
+bool overlaylumphandler(BSPheader* header, char* arg);
+
+#endif
