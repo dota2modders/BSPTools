@@ -5,7 +5,6 @@
 #include"lumps/common.h"
 #include"lumps/gamelump.h"
 #include"lumps/overlaylump.h"
-#include"lumps/mapflagslump.h"
 
 #define HEADER_LUMPS 64
 
@@ -84,7 +83,7 @@ handlerdescript statetable[] = {
 	{"leaf_ambient_lighting",&basedescript,&basehandler},
 	{"xzippakfile",&basedescript,&basehandler},
 	{"faces_hdr",&basedescript,&basehandler},
-	{"map_flags",&mapflagslumpdescript,&mapflagslumphandler},
+	{"map_flags",&basedescript,&basehandler},
 	{"overlay_fades",&basedescript,&basehandler}, //60
 	{"overlay_system_levels",&basedescript,&basehandler},
 	{"physlevel",&basedescript,&basehandler},
@@ -124,31 +123,41 @@ unsigned long load_bspfile(unsigned char** buf, char* fname) {
 	return bspsize;
 }
 
-
 int main(int argc, char* argv[]) {
-	if(argc <2) {
-		printf("usage: BSPExplode <bspfile>\n");
+	if(argc <3) {
+		printf("usage: BSPDiff <bspfile> <bspfile>\n");
 		return 0;
 	}
-	BSPheader* header = NULL;
-	unsigned long bspsize = load_bspfile((unsigned char**)(&header),argv[1]);
+	BSPheader* header1 = NULL;
+	BSPheader* header2 = NULL;
+	unsigned long bsp1size = load_bspfile((unsigned char**)(&header1),argv[1]);
+	unsigned long bsp2size = load_bspfile((unsigned char**)(&header2),argv[2]);
 	printf("Lump information follows\n");
 	int i;
 	for(i=0;i<HEADER_LUMPS;i++) {
-		if(header->lumps[i].filelen==0)
+		if(header1->lumps[i].filelen==0 && header2->lumps[i].filelen==0)
 			continue;
-		printf("Lump %i: %s\n",i,statetable[i].name);
-		printf("\tLocation: %.8X\n",header->lumps[i].fileofs);
-		printf("\tLength:   %i\n",header->lumps[i].filelen);
-		printf("\tVersion:  %i\n",header->lumps[i].version);
-		if(0 != *((int*)(header->lumps[i].fourCC)))
-			printf("\tSpecial:  %.8X\n",*((int*)(header->lumps[i].fourCC)));
+		if(header1->lumps[i].filelen == header2->lumps[i].filelen && memcmp(header1->lumps[i].fileofs+((unsigned char*)header1),header2->lumps[i].fileofs+((unsigned char*)header2),header1->lumps[i].filelen)==0)
+			continue;
+		printf("Difference on lump %i: %s\n",i,statetable[i].name);
+		printf("File 1:\n");
+		printf("\tLocation: %.8X\n",header1->lumps[i].fileofs);
+		printf("\tLength:   %i\n",header1->lumps[i].filelen);
+		printf("\tVersion:  %i\n",header1->lumps[i].version);
+		if(0 != *((int*)(header1->lumps[i].fourCC)))
+			printf("\tSpecial:  %.8X\n",*((int*)(header1->lumps[i].fourCC)));
+		printf("File 2:\n");
+		printf("\tLocation: %.8X\n",header2->lumps[i].fileofs);
+		printf("\tLength:   %i\n",header2->lumps[i].filelen);
+		printf("\tVersion:  %i\n",header2->lumps[i].version);
+		if(0 != *((int*)(header2->lumps[i].fourCC)))
+			printf("\tSpecial:  %.8X\n",*((int*)(header2->lumps[i].fourCC)));
 	}
 	int state=64;
 	ssize_t string_length;
 	size_t bufsize;
 	char* line=NULL;
-	while(1) {
+	/*while(1) {
 		printf("BSPExplode (%s) > ",statetable[state].name);
 		string_length=getline(&line,&bufsize,stdin);
 		if(string_length==0)
@@ -191,48 +200,10 @@ int main(int argc, char* argv[]) {
 			FILE* out = fopen(fname,"wb");
 			fwrite((char*)(((unsigned char*)header) + header->lumps[state].fileofs),1,header->lumps[state].filelen,out);
 			fclose(out);
-		} else if(!strncmp(line,"load",4)) {
-			int check;
-			char fname[100];
-			check = sscanf(line, "load %[A-Za-z0-9._]",fname);
-			if(check != 1) {
-				printf("usage: load <filename>\n");
-				continue;
-			}
-			if(state<0 || state >= HEADER_LUMPS) {
-				printf("Can only load a lump while a lump is selected!\n");
-				continue;
-			}
-			char* infile=NULL;
-			unsigned long insize = load_file((unsigned char**)&infile,fname,"rb","Could not load specified file for injection.\n");
-			unsigned long delta_size = insize - header->lumps[state].filelen;
-			unsigned char* newbuf = malloc(bspsize+delta_size);
-			//TODO: finish this
-		} else if(!strncmp(line,"chversion",9)) {
-			int check;
-			int toversion;
-			check = sscanf(line,"chversion %i",&toversion);
-			if(check != 1) {
-				printf("usage: chversion <version>\n");
-				continue;
-			}
-			printf("CHANGING BSP VERSION TO %i\n",toversion);
-			header->version=toversion;
-		} else if(!strncmp(line,"writemap",8)) {
-			int check;
-			char writeto[100];
-			check = sscanf(line,"writemap %[A-Za-z0-9._]",writeto);
-			if(check != 1) {
-				printf("usage: writemap <filename>\n");
-				continue;
-			}
-			FILE* out = fopen(writeto,"wb");
-			fwrite((char*)header,1,bspsize,out);
-			fclose(out);
 		} else if((*statetable[state].parsecommand)(header,line)) {
 		} else {
 			printf("Command not recognized\n");
 		}
-	}
+	}*/
 	return 0;
 }

@@ -2,6 +2,7 @@
 #define gamelump_h
 #include<stdbool.h>
 #include<stdio.h>
+#include"common.h"
 
 typedef struct dgamelump_t {
 	int id;
@@ -16,7 +17,7 @@ typedef struct dgamelumpheader_t {
 	dgamelump* lumps;
 } dgamelumpheader;
 
-void gamelumpdescript(void* lump, int len);
-bool gamelumphandler(void* arg);
+void gamelumpdescript(BSPheader* header);
+bool gamelumphandler(BSPheader* header, char* arg);
 
 #endif

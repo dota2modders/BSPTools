@@ -1,7 +1,7 @@
 #include"gamelump.h"
 
-void gamelumpdescript(void* lump,int len) {
-	dgamelumpheader* gamelumpheader = (dgamelumpheader*)lump;
+void gamelumpdescript(BSPheader* header) {
+	dgamelumpheader* gamelumpheader = (dgamelumpheader*)header->lumps[35].fileofs;
 	printf("%i game lumps\n",gamelumpheader->lumpCount);
 	int i;
 	for(i=0;i<gamelumpheader->lumpCount;i++) {
@@ -15,7 +15,7 @@ void gamelumpdescript(void* lump,int len) {
 	}
 }
 //returns true if command was handled, false otherwise.
-bool gamelumphandler(void* arg) {
+bool gamelumphandler(BSPheader* header, char* arg) {
 	//char* str = (char*)arg;
 	return false;
 }
